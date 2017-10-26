@@ -1,5 +1,3 @@
-require "rblox/version"
-
-module Rblox
-  # Your code goes here...
-end
+require 'rblox/version'
+require 'rblox/lox'
+require 'rblox/scanner'
