@@ -2,8 +2,18 @@ module Rblox
   class Lox
     attr_reader :args
 
+    @@had_error = false
+
     def initialize(args)
       @args = args
+    end
+
+    def self.error(line, msg)
+      report(line, '', msg)
+    end
+
+    def self.report(line, where, msg)
+      puts "[line #{line}] Error#{where}: #{msg}"
     end
 
     def start
@@ -19,6 +29,7 @@ module Rblox
     def run_file(path)
       source = File.read(path)
       run(source)
+      exit(65) if @@had_error
     end
 
     def run_repl
@@ -29,6 +40,9 @@ module Rblox
         next if line == ''
 
         run(line)
+        # We should not abort the REPL if the line evaluation results in
+        # an error.
+        @@had_error = false
       end
     end
 
