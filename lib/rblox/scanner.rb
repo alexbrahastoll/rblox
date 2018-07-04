@@ -30,15 +30,12 @@ module Rblox
     end
 
     def scan_tokens
-      # puts source
-      # ['Not implemented yet.']
-
       while !at_end?
-        start = current
+        self.start = current
         scan_token
       end
 
-      tokens << Token.new(TokenType::EOF, '', nil, line)
+      self.tokens << Token.new(TokenType::EOF, '', nil, line)
     end
 
     private
@@ -88,21 +85,24 @@ module Rblox
       when ' ' || "\r" || "\t"
         # Ignore whitespace.
       when "\n"
-        line += 1
+        self.line += 1
       when '"'
         string
-      when digit?(c)
-        number
-      when alpha_numeric?(c)
-        identifier
       else
-        Lox.error(line, 'Unexpected character.')
+        if digit?(c)
+          number
+        elsif alpha_numeric?(c)
+          identifier
+        else
+          Lox.error(line, 'Unexpected character.')
+        end
       end
     end
 
     def string
+      string_start_line = line
       while peek != '"' && !at_end?
-        line += 1 if peek == "\n"
+        self.line += 1 if peek == "\n"
         advance
       end
 
@@ -117,7 +117,7 @@ module Rblox
 
       # Trim the surrounding quotes to produce the actual value of the string.
       value = source[(start + 1)..(current - 2)]
-      add_token(TokenType::STRING, value)
+      add_token(TokenType::STRING, value, string_start_line)
     end
 
     def number
@@ -143,14 +143,14 @@ module Rblox
       end
 
       # Check to see if the identifier is a reserved word.
-      text = source[start, (current - 1)]
+      text = source[start..(current - 1)]
       token_type = KEYWORDS[text]
       token_type ||= TokenType::IDENTIFIER
 
       add_token(token_type)
     end
 
-    def add_token(type, literal = nil)
+    def add_token(type, literal = nil, line = self.line)
       text = source[start..(current - 1)]
       tokens << Token.new(type, text, literal, line)
     end
@@ -175,7 +175,7 @@ module Rblox
 
     def advance
       c = source[current]
-      current += 1
+      self.current += 1
       c
     end
 
@@ -183,7 +183,7 @@ module Rblox
       return false if at_end?
       return false if source[current] != expected
 
-      current += 1
+      self.current += 1
       true
     end
 
